@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GUDE — Assistante Virtuelle Wahou</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ci-orange: #F47920;
+    --ci-green: #009A44;
+    --ci-white: #FFFFFF;
+    --navy: #1A2B4A;
+    --navy-mid: #243556;
+    --navy-light: #2E4270;
+    --accent: #4A9FD4;
+    --accent-glow: rgba(74, 159, 212, 0.18);
+    --text-primary: #0F1C30;
+    --text-secondary: #4A5568;
+    --text-muted: #8A9AB5;
+    --bg: #F5F7FA;
+    --surface: #FFFFFF;
+    --border: rgba(26,43,74,0.10);
+    --code-bg: #0F1C30;
+    --code-text: #C8D8F0;
+    --code-green: #5FCEA8;
+    --code-orange: #F4A261;
+    --code-blue: #79B8FF;
+    --code-string: #9ECBFF;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    display: flex; align-items: center; gap: 32px;
+    height: 64px;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none; flex-shrink: 0;
+  }
+  .logo-flag {
+    display: flex; height: 22px; border-radius: 3px; overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  }
+  .flag-band { width: 10px; height: 22px; }
+  .flag-orange { background: var(--ci-orange); }
+  .flag-white  { background: var(--ci-white); border-left: .5px solid #eee; border-right: .5px solid #eee; }
+  .flag-green  { background: var(--ci-green); }
+  .logo-text { font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px; color: var(--navy); letter-spacing: -.3px; }
+  .logo-badge { font-size: 9px; font-weight: 700; background: var(--ci-orange); color: #fff; border-radius: 4px; padding: 1px 5px; margin-left: 4px; vertical-align: top; letter-spacing: .3px; }
+  .logo-sub { font-size: 9.5px; color: var(--text-muted); font-weight: 400; display: block; line-height: 1.1; }
+
+  .nav-search {
+    flex: 1; max-width: 280px;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0 12px; height: 36px;
+    font-size: 13px; color: var(--text-muted);
+  }
+  .nav-search svg { flex-shrink: 0; opacity: .5; }
+
+  .nav-links { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+  .nav-links a {
+    font-size: 13px; font-weight: 500; color: var(--text-secondary);
+    text-decoration: none; padding: 6px 14px; border-radius: 6px;
+    transition: all .18s;
+  }
+  .nav-links a:hover { background: var(--bg); color: var(--navy); }
+  .nav-links a.active {
+    color: var(--navy); font-weight: 600;
+    border-bottom: 2px solid var(--navy); border-radius: 0;
+  }
+
+  .live-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(0,154,68,.08); border: 1px solid rgba(0,154,68,.2);
+    border-radius: 20px; padding: 4px 10px;
+    font-size: 11px; font-weight: 600; color: var(--ci-green);
+    margin-left: 8px;
+  }
+  .live-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ci-green);
+    box-shadow: 0 0 0 2px rgba(0,154,68,.25);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 2px rgba(0,154,68,.25)} 50%{box-shadow:0 0 0 5px rgba(0,154,68,.08)} }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 55%, #1E3A5F 100%);
+    overflow: hidden;
+    min-height: 500px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .hero-bg-dots {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image: radial-gradient(circle, rgba(255,255,255,.055) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .hero-bg-glow {
+    position: absolute; top: -80px; right: 30%; width: 440px; height: 440px;
+    background: radial-gradient(circle, rgba(74,159,212,.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-left {
+    position: relative; z-index: 2;
+    padding: 56px 40px 56px 60px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.15);
+    border-radius: 20px; padding: 4px 12px 4px 8px;
+    font-size: 11px; font-weight: 700; color: rgba(255,255,255,.75);
+    letter-spacing: .7px; text-transform: uppercase; margin-bottom: 22px;
+    width: fit-content;
+  }
+  .hero-tag .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ci-green); box-shadow: 0 0 7px var(--ci-green);
+    display: inline-block;
+  }
+  .hero-title {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(24px, 2.8vw, 38px);
+    font-weight: 700; line-height: 1.15;
+    color: #fff; margin-bottom: 16px; letter-spacing: -.5px;
+  }
+  .hero-title span { color: var(--ci-orange); }
+  .hero-title em { font-style: normal; color: rgba(255,255,255,.55); font-size: .75em; display: block; margin-top: 6px; font-family: 'DM Sans', sans-serif; font-weight: 400; letter-spacing: 0; }
+
+  .hero-desc {
+    font-size: 14px; color: rgba(255,255,255,.65); line-height: 1.72;
+    max-width: 400px; margin-bottom: 32px;
+  }
+  .hero-desc strong { color: rgba(255,255,255,.9); font-weight: 600; }
+
+  /* ── BUTTONS ── */
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 40px; align-items: center; }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--ci-orange); color: #fff;
+    font-size: 13.5px; font-weight: 600;
+    padding: 11px 24px; border-radius: 8px;
+    text-decoration: none; transition: all .18s;
+    border: none; cursor: pointer;
+  }
+  .btn-primary:hover { background: #e0681a; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(244,121,32,.35); }
+
+  /* bouton "Tester" — glassmorphism discret sur fond navy */
+  .btn-chat {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,.10);
+    border: 1.5px solid rgba(255,255,255,.28);
+    color: #fff;
+    font-size: 13.5px; font-weight: 600;
+    padding: 11px 24px; border-radius: 8px;
+    text-decoration: none; transition: all .22s;
+    cursor: pointer; backdrop-filter: blur(6px);
+  }
+  .btn-chat svg { opacity: .85; }
+  .btn-chat:hover {
+    background: rgba(255,255,255,.18);
+    border-color: rgba(255,255,255,.5);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(0,0,0,.22);
+  }
+
+  .hero-stats { display: flex; gap: 32px; }
+  .hero-stat-val {
+    font-family: 'Fraunces', serif; font-size: 26px;
+    font-weight: 700; color: #fff; line-height: 1;
+  }
+  .hero-stat-val span { color: var(--ci-orange); }
+  .hero-stat-label { font-size: 10.5px; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .6px; margin-top: 3px; }
+
+  .hero-right {
+    position: relative; z-index: 2;
+    display: flex; align-items: flex-end; justify-content: center;
+    padding: 0 16px 0 0;
+  }
+  .wahou-container { position: relative; display: flex; align-items: flex-end; height: 100%; }
+
+  .wahou-bubble {
+    position: absolute; top: 52px; left: -190px; z-index: 4;
+    background: #fff; border-radius: 16px 16px 16px 4px;
+    padding: 16px 18px; width: 235px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.22);
+    animation: fadeSlide .8s ease .3s both;
+  }
+  @keyframes fadeSlide { from{opacity:0;transform:translateX(-14px) scale(.97)} to{opacity:1;transform:none} }
+  .bubble-name { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 5px; }
+  .bubble-text { font-size: 12px; color: var(--text-secondary); line-height: 1.58; }
+  .bubble-text strong { color: var(--navy); }
+
+  .wahou-img {
+    height: 400px; width: auto; object-fit: contain;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,.35));
+    position: relative; z-index: 3;
+    animation: floatWahou 5s ease-in-out infinite;
+  }
+  @keyframes floatWahou { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+  .hero-code {
+    position: absolute; bottom: 28px; right: 0; width: 296px;
+    background: var(--code-bg); border-radius: 12px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,.07);
+    box-shadow: 0 16px 48px rgba(0,0,0,.45);
+    z-index: 2; animation: fadeInCode 1s ease .7s both;
+  }
+  @keyframes fadeInCode { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; background: rgba(255,255,255,.04);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .code-method { font-family: 'DM Mono', monospace; font-size: 11px; display: flex; gap: 6px; align-items: center; }
+  .badge-post { background: var(--ci-green); color: #fff; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+  .code-path { color: var(--code-text); }
+  .code-copy { opacity: .35; cursor: pointer; transition: opacity .15s; }
+  .code-copy:hover { opacity: .75; }
+  .code-body { padding: 12px 14px; font-family: 'DM Mono', monospace; font-size: 11px; line-height: 1.72; }
+  .tk-brace { color: var(--code-text); }
+  .tk-key   { color: var(--code-blue); }
+  .tk-str   { color: var(--code-string); }
+  .tk-colon { color: var(--code-text); opacity: .5; }
+  .tk-response { color: var(--code-green); }
+  .ln { color: rgba(255,255,255,.18); user-select: none; }
+  .tk-num { color: #B5CEA8; }
+
+  /* ── FEATURES STRIP ── */
+  .features-strip {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 60px; display: flex; gap: 0;
+  }
+  .feature-item {
+    flex: 1; display: flex; align-items: center; gap: 13px;
+    padding: 0 24px; border-right: 1px solid var(--border);
+  }
+  .feature-item:first-child { padding-left: 0; }
+  .feature-item:last-child  { border-right: none; }
+  .feature-icon {
+    width: 38px; height: 38px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .fi-navy   { background: rgba(26,43,74,.08);   color: var(--navy); }
+  .fi-orange { background: rgba(244,121,32,.1);  color: var(--ci-orange); }
+  .fi-green  { background: rgba(0,154,68,.1);    color: var(--ci-green); }
+  .fi-blue   { background: rgba(74,159,212,.12); color: var(--accent); }
+  .ft-label  { font-size: 12.5px; font-weight: 600; color: var(--navy); }
+  .ft-desc   { font-size: 11.5px; color: var(--text-muted); }
+
+  /* ── MAIN GRID ── */
+  .main { max-width: 1180px; margin: 0 auto; padding: 48px 40px; display: grid; grid-template-columns: 220px 1fr; gap: 32px; }
+
+  .sidebar-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; padding: 0 12px; }
+  .sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
+  .sidebar-item {
+    font-size: 13px; font-family: 'DM Mono', monospace;
+    padding: 9px 12px; border-radius: 7px; cursor: pointer;
+    color: var(--text-secondary); text-decoration: none;
+    transition: all .15s; border: 1px solid transparent;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .sidebar-item:hover { background: var(--surface); color: var(--navy); }
+  .sidebar-item.active { background: var(--navy); color: #fff; box-shadow: 0 2px 12px rgba(26,43,74,.2); }
+  .method-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .dot-post { background: var(--ci-green); }
+  .dot-get  { background: var(--accent); }
+
+  .endpoint-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: 0 2px 16px rgba(26,43,74,.06); }
+  .endpoint-header { background: var(--navy); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .endpoint-title { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; color: #fff; }
+  .endpoint-title code { font-family: 'DM Mono', monospace; font-size: 14px; background: rgba(255,255,255,.12); padding: 2px 8px; border-radius: 5px; }
+  .badge-method { font-size: 10px; font-weight: 700; letter-spacing: .5px; padding: 3px 9px; border-radius: 5px; }
+  .badge-post-lg { background: var(--ci-green); color: #fff; }
+  .expand-icon { color: rgba(255,255,255,.45); cursor: pointer; }
+
+  .endpoint-tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 24px; }
+  .tab {
+    font-size: 13px; font-weight: 500; color: var(--text-muted);
+    padding: 12px 0; margin-right: 24px;
+    border-bottom: 2px solid transparent; cursor: pointer; transition: all .15s;
+  }
+  .tab.active { color: var(--navy); border-bottom-color: var(--navy); }
+  .tab:hover  { color: var(--navy); }
+
+  .endpoint-body { padding: 24px; }
+
+  .code-block { background: var(--code-bg); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,.05); }
+  .code-block-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px; background: rgba(255,255,255,.03);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .code-lang { font-size: 11px; font-family: 'DM Mono', monospace; color: rgba(255,255,255,.33); }
+  .copy-btn {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; color: rgba(255,255,255,.33); background: none; border: none;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: color .15s;
+  }
+  .copy-btn:hover { color: rgba(255,255,255,.7); }
+  .code-content { padding: 16px; font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1.75; color: var(--code-text); overflow-x: auto; }
+
+  .params-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .params-table th { text-align: left; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .params-table td { padding: 12px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .params-table tr:last-child td { border-bottom: none; }
+  .param-name { font-family: 'DM Mono', monospace; font-size: 12.5px; color: var(--navy); font-weight: 500; }
+  .param-type { display: inline-block; background: var(--accent-glow); color: var(--accent); font-family: 'DM Mono', monospace; font-size: 11px; padding: 2px 7px; border-radius: 4px; }
+  .param-required { display: inline-block; background: rgba(244,121,32,.12); color: var(--ci-orange); font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+  .param-desc { color: var(--text-secondary); font-size: 13px; }
+
+  .section-title { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 12px; }
+  .section-desc  { font-size: 13.5px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.65; }
+  .response-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  footer {
+    background: var(--navy); color: rgba(255,255,255,.4);
+    font-size: 12px; padding: 20px 60px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  footer a { color: rgba(255,255,255,.45); text-decoration: none; transition: color .15s; }
+  footer a:hover { color: #fff; }
+
+  @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+  .hero-left > * { animation: fadeInUp .6s ease both; }
+  .hero-left > *:nth-child(1) { animation-delay: .05s; }
+  .hero-left > *:nth-child(2) { animation-delay: .12s; }
+  .hero-left > *:nth-child(3) { animation-delay: .19s; }
+  .hero-left > *:nth-child(4) { animation-delay: .26s; }
+  .hero-left > *:nth-child(5) { animation-delay: .32s; }
+</style>
+</head>
+<body>
+
+<!-- ════ NAV ════ -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="logo-flag">
+      <div class="flag-band flag-orange"></div>
+      <div class="flag-band flag-white"></div>
+      <div class="flag-band flag-green"></div>
+    </div>
+    <div>
+      <span class="logo-text">GUDE-PME <sup class="logo-badge">OFFICIEL</sup></span>
+      <span class="logo-sub">Guichet Unique de Développement des PME — Côte d'Ivoire</span>
+    </div>
+  </a>
+
+  <div class="nav-search">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    Rechercher dans la documentation…
+  </div>
+
+  <div class="nav-links">
+    <a href="#" class="active">Accueil</a>
+    <a href="/docs">Documentation API</a>
+    <div class="live-badge">
+      <span class="live-dot"></span>
+      En ligne 24h/24
+    </div>
+  </div>
+</nav>
+
+<!-- ════ HERO ════ -->
+<section class="hero">
+  <div class="hero-bg-dots"></div>
+  <div class="hero-bg-glow"></div>
+
+  <div class="hero-left">
+    <div class="hero-tag">
+      <span class="dot"></span>
+      Assistante Virtuelle Officielle &bull; GUDE &bull; v1.0
+    </div>
+
+    <h1 class="hero-title">
+      Bienvenue sur l'AI-API<br/>
+      du GUDE-PME<br/>
+      <span>Mme Wahou, votre Assistante IA</span><br/>
+      <em>Disponible 7j/7 — 24h/24 — Sans attente</em>
+    </h1>
+
+    <!-- ✅ Les deux boutons côte à côte dans le même bloc -->
+    <div class="hero-actions">
+      <a href="/docs" class="btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13,2 13,9 20,9"/></svg>
+        Voir la documentation Swagger
+      </a>
+      <a href="/test_chat" class="btn-chat">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Tester le chatbot en direct
+      </a>
+    </div>
+
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-val">24<span>h</span></div>
+        <div class="hero-stat-label">Disponibilité</div>
+      </div>
+      <div>
+        <div class="hero-stat-val">100<span>%</span></div>
+        <div class="hero-stat-label">Transparent</div>
+      </div>
+      <div>
+        <div class="hero-stat-val">RAG</div>
+        <div class="hero-stat-label">Technologie</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="hero-right">
+    <div class="wahou-container">
+      <div class="wahou-bubble">
+        <div class="bubble-name">👋 Wahou — Assistante du GUDE</div>
+        <div class="bubble-text">
+          Bonjour ! Je suis <strong>Mme. Wahou</strong>, votre assistante virtuelle officielle. Posez-moi toutes vos questions sur les procédures du GUDE — je suis là pour vous, à tout moment.
+        </div>
+      </div>
+
+      <img src="/static/mme_wahou.png" alt="Mme Wahou — Assistante Virtuelle GUDE" class="wahou-img" />
+
+      <div class="hero-code">
+        <div class="code-header">
+          <div class="code-method">
+            <span class="badge-post">POST</span>
+            <span class="code-path">/chat</span>
+          </div>
+          <svg class="code-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </div>
+        <div class="code-body">
+          <div><span class="ln"> 1</span>&nbsp;<span class="tk-brace">{</span></div>
+          <div><span class="ln"> 2</span>&nbsp;&nbsp;<span class="tk-key">"session_id"</span><span class="tk-colon">: </span><span class="tk-str">"user-abc-123"</span><span class="tk-colon">,</span></div>
+          <div><span class="ln"> 3</span>&nbsp;&nbsp;<span class="tk-key">"message"</span><span class="tk-colon">: </span><span class="tk-str">"C'est quoi le GUDE ?"</span></div>
+          <div><span class="ln"> 4</span><span class="tk-brace">}</span></div>
+          <div style="margin-top:8px;border-top:1px solid rgba(255,255,255,.07);padding-top:8px">
+            <div><span class="ln"> 6</span>&nbsp;<span class="tk-response">"response"</span><span class="tk-colon">: {</span></div>
+            <div><span class="ln"> 7</span>&nbsp;&nbsp;<span class="tk-key">"answer"</span><span class="tk-colon">: </span><span class="tk-str">"Le GUDE est le Guichet<br>&nbsp;&nbsp;&nbsp;&nbsp;Unique de Développement…"</span></div>
+            <div><span class="ln"> 8</span>&nbsp;&nbsp;<span class="tk-key">"is_new_session"</span><span class="tk-colon">: </span><span class="tk-num">true</span></div>
+            <div><span class="ln"> 9</span><span class="tk-colon">}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ FEATURES STRIP ════ -->
+<div class="features-strip">
+  <div class="feature-item">
+    <div class="feature-icon fi-green">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    </div>
+    <div>
+      <div class="ft-label">Disponible 24h/24 — 7j/7</div>
+      <div class="ft-desc">Aucune attente, réponse instantanée</div>
+    </div>
+  </div>
+  <div class="feature-item">
+    <div class="feature-icon fi-navy">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <div>
+      <div class="ft-label">Périmètre GUDE uniquement</div>
+      <div class="ft-desc">Réponses cadrées sur les procédures officielles</div>
+    </div>
+  </div>
+  <div class="feature-item">
+    <div class="feature-icon fi-orange">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+    </div>
+    <div>
+      <div class="ft-label">Sources documentées</div>
+      <div class="ft-desc">Chaque réponse est traçable et sourcée</div>
+    </div>
+  </div>
+  <div class="feature-item">
+    <div class="feature-icon fi-blue">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div>
+      <div class="ft-label">Mémoire conversationnelle</div>
+      <div class="ft-desc">Contexte maintenu pendant 30 minutes</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MAIN ════ -->
+<div class="main">
+  <aside>
+    <div class="sidebar-label">Endpoints</div>
+    <nav class="sidebar-nav">
+      <a href="#" class="sidebar-item">
+        <span class="method-dot dot-get"></span>/health
+      </a>
+      <a href="#" class="sidebar-item active">
+        <span class="method-dot dot-post"></span>/chat
+      </a>
+      <a href="#" class="sidebar-item">
+        <span class="method-dot dot-post"></span>DELETE /chat/{session_id}
+      </a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <div class="endpoint-title">
+          ENDPOINT PRINCIPAL &nbsp;<code>/chat</code>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="badge-method badge-post-lg">POST</span>
+          <svg class="expand-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+        </div>
+      </div>
+
+      <div class="endpoint-tabs">
+        <div class="tab active" onclick="setTab(this,'desc')">Description</div>
+        <div class="tab" onclick="setTab(this,'params')">Paramètres</div>
+        <div class="tab" onclick="setTab(this,'examples')">Exemples</div>
+      </div>
+
+      <div class="endpoint-body">
+        <div id="tab-desc" class="tab-panel" style="display:block">
+          <p class="section-desc">
+            Envoyez un message à Wahou et recevez instantanément une réponse précise sur les procédures et services du GUDE. L'historique de conversation est conservé <strong style="color:var(--navy)">30 minutes par session</strong> pour un échange naturel et continu.
+          </p>
+          <div class="section-title">Corps de la requête</div>
+          <div class="code-block" style="margin-bottom:24px">
+            <div class="code-block-header">
+              <span class="code-lang">JSON — Request Body</span>
+              <button class="copy-btn" onclick="copyCode('req-code',this)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copier
+              </button>
+            </div>
+            <pre class="code-content" id="req-code"><span class="tk-brace">{</span>
+  <span class="tk-key">"session_id"</span><span class="tk-colon">: </span><span class="tk-str">"user-abc-123"</span><span class="tk-colon">,</span>
+  <span class="tk-key">"message"</span><span class="tk-colon">: </span><span class="tk-str">"Quels sont les documents requis pour créer une PME ?"</span>
+<span class="tk-brace">}</span></pre>
+          </div>
+          <div class="response-grid">
+            <div class="code-block">
+              <div class="code-block-header">
+                <span class="code-lang" style="color:rgba(95,206,168,.7)">200 OK</span>
+                <button class="copy-btn" onclick="copyCode('ok-code',this)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  Copier
+                </button>
+              </div>
+              <pre class="code-content" id="ok-code"><span class="tk-brace">{</span>
+  <span class="tk-key">"session_id"</span><span class="tk-colon">: </span><span class="tk-str">"user-abc-123"</span><span class="tk-colon">,</span>
+  <span class="tk-key">"message"</span><span class="tk-colon">: </span><span class="tk-str">"Quels documents…"</span><span class="tk-colon">,</span>
+  <span class="tk-response">"response"</span><span class="tk-colon">: </span><span class="tk-str">"Pour créer une PME au GUDE…"</span><span class="tk-colon">,</span>
+  <span class="tk-key">"is_new_session"</span><span class="tk-colon">: </span><span class="tk-num">false</span>
+<span class="tk-brace">}</span></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-block-header">
+                <span class="code-lang" style="color:rgba(244,121,32,.7)">4xx / 5xx Erreur</span>
+              </div>
+              <pre class="code-content"><span class="tk-brace">{</span>
+  <span class="tk-key">"detail"</span><span class="tk-colon">: </span><span class="tk-str">"Le message ne peut<br>    pas être vide."</span>
+<span class="tk-brace">}</span></pre>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-params" class="tab-panel" style="display:none">
+          <table class="params-table">
+            <thead><tr><th>Paramètre</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="param-name">session_id</span><span class="param-required">REQUIS</span></td>
+                <td><span class="param-type">string</span></td>
+                <td class="param-desc">Identifiant unique de session généré côté client (ex : UUID). Permet à Wahou de mémoriser le contexte de la conversation.</td>
+              </tr>
+              <tr>
+                <td><span class="param-name">message</span><span class="param-required">REQUIS</span></td>
+                <td><span class="param-type">string</span></td>
+                <td class="param-desc">La question ou le message de l'utilisateur, en langage naturel. Doit concerner les procédures et services du GUDE.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="tab-examples" class="tab-panel" style="display:none">
+          <p class="section-desc">Exemple d'appel à Wahou avec cURL :</p>
+          <div class="code-block">
+            <div class="code-block-header">
+              <span class="code-lang">cURL</span>
+              <button class="copy-btn" onclick="copyCode('curl-code',this)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copier
+              </button>
+            </div>
+            <pre class="code-content" id="curl-code"><span class="tk-str">curl</span> -X POST <span class="tk-response">http://localhost:8000/chat</span> \
+  -H <span class="tk-str">"Content-Type: application/json"</span> \
+  -d <span class="tk-str">'{"session_id":"user-abc-123","message":"C'\''est quoi le GUDE ?"}'</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ════ FOOTER ════ -->
+<footer>
+  <div>© 2025 GUDE — Guichet Unique de Développement des PME, République de Côte d'Ivoire</div>
+  <div style="display:flex;gap:20px">
+    <a href="#">Conditions d'utilisation</a>
+    <a href="#">Politique de confidentialité</a>
+    <a href="/docs">Documentation Swagger</a>
+  </div>
+</footer>
+
+<script>
+  function setTab(btn, panel) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+    btn.classList.add('active');
+    document.getElementById('tab-' + panel).style.display = 'block';
+  }
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+  function copyCode(id, btn) {
+    const text = document.getElementById(id).innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const old = btn.innerHTML;
+      btn.textContent = '✓ Copié !';
+      setTimeout(() => btn.innerHTML = old, 1500);
+    });
+  }
+</script>
+</body>
+</html>

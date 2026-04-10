@@ -1,0 +1,8 @@
+fastapi
+uvicorn 
+cachetools 
+llama-index
+llama-index-embeddings-huggingface
+httpx
+jinja2 
+python-dotenv
